@@ -18,3 +18,6 @@ node_modules/
 
 # Ignore logs
 *.log
+# Ignore frontend directories
+.vscode/
+node_modules/
