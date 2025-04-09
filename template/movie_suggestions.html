@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Movie Suggestions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #1a1a1a;
+      color: #fff;
+      text-align: center;
+      background-image: url('https://image.tmdb.org/t/p/original/xDMIl84Qo5Tsu62c9DGWhmPI67A.jpg');
+      background-size: cover;
+      background-position: center;
+      backdrop-filter: brightness(0.6);
+    }
+
+    h1 {
+      font-size: 3.5em;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      color: #01b4e4;
+      text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.7);
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .genre-button {
+      padding: 15px 25px;
+      font-size: 1.2em;
+      border-radius: 20px;
+      border: 2px solid #ffffff;
+      background-color: rgba(255, 255, 255, 0.3);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .genre-button:hover {
+      transform: scale(1.1);
+      background-color: #017f9b;
+    }
+
+    .genre-button img {
+      width: 40px;
+      height: 40px;
+    }
+
+    .loading-spinner {
+      margin-top: 40px;
+      font-size: 1.5em;
+      color: #01b4e4;
+    }
+
+    .results-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    .movie-item {
+      width: 250px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      border: 5px solid #ffffff; /* White border to make the poster pop */
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.6); /* Shadow to lift the poster */
+    }
+
+    .movie-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.8); /* Stronger shadow on hover */
+    }
+
+    .movie-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-bottom: 2px solid #01b4e4;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.6)); /* Darker overlay for better visibility */
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 15px;
+      color: #fff;
+    }
+
+    .movie-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .movie-meta {
+      font-size: 0.95em;
+      color: #ccc;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-content {
+      background-color: #222;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 600px;
+      color: #fff;
+      text-align: left;
+      position: relative;
+    }
+
+    .close {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #fff;
+    }
+
+    /* Back button in top-right corner */
+    .back-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: #01b4e4;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+      background-color: #017f9b;
+    }
+
+    /* Home Button positioned in top-right corner */
+    .home-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #01b4e4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: background-color 0.3s;
+    }
+
+    .home-button:hover {
+      background-color: #017f9b;
+    }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2.5em; }
+      .movie-item { width: 200px; }
+      .modal-content { width: 90%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 Movie Suggestions</h1>
+
+  <div class="button-container">
+    <!-- Genre Buttons with Cartoon Icons -->
+    <button class="genre-button" onclick="getMoviesByGenre(28)">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/action.png" alt="Action Icon"> Action
+    </button>
+    <button class="genre-button" onclick="getMoviesByGenre(35)">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/comedy.png" alt="Comedy Icon"> Comedy
+    </button>
+    <button class="genre-button" onclick="getMoviesByGenre(18)">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/drama.png" alt="Drama Icon"> Drama
+    </button>
+    <button class="genre-button" onclick="getMoviesByGenre(27)">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/horror.png" alt="Horror Icon"> Horror
+    </button>
+    <button class="genre-button" onclick="getMoviesByGenre(12)">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/adventure.png" alt="Adventure Icon"> Adventure
+    </button>
+    <button class="genre-button" onclick="getMoviesByGenre(10749)">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/romance.png" alt="Romance Icon"> Romance
+    </button>
+    <button class="genre-button" onclick="getMoviesByGenre(878)">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/sci-fi.png" alt="Sci-Fi Icon"> Sci-Fi
+    </button>
+    <button class="genre-button" onclick="getMoviesByGenre(53)">
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/thriller.png" alt="Thriller Icon"> Thriller
+    </button>
+  </div>
+
+  <div class="loading-spinner" id="loading-spinner" style="display: none;">Loading suggestions...</div>
+
+  <div class="button-container">
+    <button class="genre-button" onclick="getTrendingMovies()">Trending Movies</button>
+    <button class="genre-button" onclick="getTopRatedMovies()">Top Rated Movies</button>
+  </div>
+
+  <div class="results-container" id="results-container"></div>
+
+  <!-- Modal for Movie Details -->
+  <div id="movieModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div id="modal-content-area"></div>
+      <!-- Back button in top-right corner of modal -->
+      <button class="back-button" onclick="closeModal()">Back</button>
+    </div>
+  </div>
+
+  <!-- Home Button -->
+  <button class="home-button" onclick="window.location.href='index.html'">Back to Home</button>
+
+  <script>
+    const apiKey = 'fd63624ffe4ce8868bd42a144141ba75';
+    const imageBaseURL = 'https://image.tmdb.org/t/p/w500';
+
+    function getMoviesByGenre(genreId) {
+      const spinner = document.getElementById('loading-spinner');
+      const resultsContainer = document.getElementById('results-container');
+
+      spinner.style.display = 'block';
+      resultsContainer.innerHTML = '';
+
+      fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}`)
+        .then(response => response.json())
+        .then(data => {
+          spinner.style.display = 'none';
+
+          if (data.results.length === 0) {
+            resultsContainer.innerHTML = '<p>No movies found for this genre.</p>';
+            return;
+          }
+
+          data.results.forEach(movie => {
+            const movieElement = createMovieElement(movie);
+            resultsContainer.appendChild(movieElement);
+          });
+        })
+        .catch(error => {
+          spinner.style.display = 'none';
+          console.error('Error fetching movies by genre:', error);
+          alert('An error occurred while fetching movies.');
+        });
+    }
+
+    function getTrendingMovies() {
+      const spinner = document.getElementById('loading-spinner');
+      const resultsContainer = document.getElementById('results-container');
+
+      spinner.style.display = 'block';
+      resultsContainer.innerHTML = '';
+
+      fetch(`https://api.themoviedb.org/3/trending/movie/day?api_key=${apiKey}`)
+        .then(response => response.json())
+        .then(data => {
+          spinner.style.display = 'none';
+
+          if (data.results.length === 0) {
+            resultsContainer.innerHTML = '<p>No trending movies found.</p>';
+            return;
+          }
+
+          data.results.forEach(movie => {
+            const movieElement = createMovieElement(movie);
+            resultsContainer.appendChild(movieElement);
+          });
+        })
+        .catch(error => {
+          spinner.style.display = 'none';
+          console.error('Error fetching trending movies:', error);
+          alert('An error occurred while fetching trending movies.');
+        });
+    }
+
+    function getTopRatedMovies() {
+      const spinner = document.getElementById('loading-spinner');
+      const resultsContainer = document.getElementById('results-container');
+
+      spinner.style.display = 'block';
+      resultsContainer.innerHTML = '';
+
+      fetch(`https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}`)
+        .then(response => response.json())
+        .then(data => {
+          spinner.style.display = 'none';
+
+          if (data.results.length === 0) {
+            resultsContainer.innerHTML = '<p>No top rated movies found.</p>';
+            return;
+          }
+
+          data.results.forEach(movie => {
+            const movieElement = createMovieElement(movie);
+            resultsContainer.appendChild(movieElement);
+          });
+        })
+        .catch(error => {
+          spinner.style.display = 'none';
+          console.error('Error fetching top rated movies:', error);
+          alert('An error occurred while fetching top rated movies.');
+        });
+    }
+
+    function createMovieElement(movie) {
+      const movieElement = document.createElement('div');
+      movieElement.classList.add('movie-item');
+      movieElement.onclick = () => openModal(movie);
+
+      const movieImage = document.createElement('img');
+      movieImage.src = imageBaseURL + movie.poster_path;
+      movieElement.appendChild(movieImage);
+
+      const overlay = document.createElement('div');
+      overlay.classList.add('overlay');
+      const title = document.createElement('div');
+      title.classList.add('movie-title');
+      title.textContent = movie.title;
+      overlay.appendChild(title);
+
+      const meta = document.createElement('div');
+      meta.classList.add('movie-meta');
+      meta.textContent = `Rating: ${movie.vote_average} | Release: ${movie.release_date}`;
+      overlay.appendChild(meta);
+
+      movieElement.appendChild(overlay);
+
+      return movieElement;
+    }
+
+    function openModal(movie) {
+      const modal = document.getElementById('movieModal');
+      const modalContentArea = document.getElementById('modal-content-area');
+      
+      modalContentArea.innerHTML = `
+        <h2>${movie.title}</h2>
+        <p>${movie.overview}</p>
+        <p><strong>Rating:</strong> ${movie.vote_average}</p>
+        <p><strong>Release Date:</strong> ${movie.release_date}</p>
+      `;
+      modal.style.display = 'block';
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('movieModal');
+      modal.style.display = 'none';
+    }
+  </script>
+</body>
+</html>  

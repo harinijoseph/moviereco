@@ -1,0 +1,373 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search Movies | Movie Recommender</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #1a1a1a;
+      color: #fff;
+      text-align: center;
+      background-image: url('https://image.tmdb.org/t/p/original/xDMIl84Qo5Tsu62c9DGWhmPI67A.jpg');
+      background-size: cover;
+      background-position: center;
+      backdrop-filter: brightness(0.6);
+    }
+
+    h1 {
+      font-size: 3.5em;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      color: #01b4e4;
+      text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.7);
+    }
+
+    .search-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 40px;
+    }
+
+    .search-bar {
+      padding: 12px 20px;
+      font-size: 1.2em;
+      border-radius: 20px;
+      border: 2px solid #ffffff;
+      width: 300px;
+      margin-right: 10px;
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .search-bar:focus {
+      outline: none;
+      border-color: #01b4e4;
+    }
+
+    .search-button {
+      padding: 12px 20px;
+      font-size: 1.2em;
+      background-color: #01b4e4;
+      border: none;
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .search-button:hover {
+      background-color: #017f9b;
+      transform: scale(1.05);
+    }
+
+    .back-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      background-color: #ff6347;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+
+    .results-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    .movie-item {
+      width: 250px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      border: 5px solid #ffffff;
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.6);
+    }
+
+    .movie-item:hover {
+      transform: translateY(-10px);
+      box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.8);
+    }
+
+    .movie-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-bottom: 2px solid #01b4e4;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.6));
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 15px;
+      color: #fff;
+    }
+
+    .movie-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .movie-meta {
+      font-size: 0.95em;
+      color: #ccc;
+    }
+
+    .loading-spinner {
+      margin-top: 40px;
+      font-size: 1.5em;
+      color: #01b4e4;
+    }
+
+    #sortOptions {
+      display: flex;
+      align-items: center;
+      margin-left: 10px;
+    }
+
+    #sortSelect {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      background-color: #333;
+      border: 2px solid #ffffff;
+      border-radius: 25px;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+      font-family: 'Roboto', sans-serif; /* Changed font for sorting */
+    }
+
+    #sortSelect:hover {
+      background-color: #01b4e4;
+      transform: scale(1.05);
+    }
+
+    #sortSelect:focus {
+      outline: none;
+      background-color: #017f9b;
+    }
+
+    /* Fullscreen modal style */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .modal-content {
+      background-color: #222;
+      color: #fff;
+      text-align: left;
+      width: 100%;
+      max-width: 700px; /* Reduced width of the modal */
+      margin: auto;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .modal-content img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .close {
+      color: #aaa;
+      font-size: 36px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #fff;
+    }
+
+    /* Back button for modal */
+    .back-to-results {
+      display: flex;
+      align-items: center;
+      font-size: 1.2em;
+      cursor: pointer;
+      color: #fff;
+      background-color: #01b4e4;
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .back-to-results i {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 Search Movies</h1>
+
+  <div class="search-container">
+    <input type="text" id="search-bar" class="search-bar" placeholder="Search for a movie..." />
+    <button class="search-button" onclick="searchMovies()">Search</button>
+    <div id="sortOptions">
+      <label for="sortSelect">Sort by: </label>
+      <select id="sortSelect" onchange="sortMovies()">
+        <option value="rating">Rating</option>
+        <option value="release_date">Release Date</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="back-button" onclick="goBack()">Back</button>
+
+  <div class="loading-spinner" id="loading-spinner" style="display: none;">Loading movies...</div>
+  <div class="results-container" id="results-container"></div>
+
+  <!-- Fullscreen Modal -->
+  <div id="movieModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div id="modal-content-area"></div>
+      <div class="back-to-results" onclick="closeModal()">
+        <i class="bi bi-arrow-left-circle"></i> Back to Results
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiKey = 'fd63624ffe4ce8868bd42a144141ba75';
+    const imageBaseURL = 'https://image.tmdb.org/t/p/w500';
+    let allMovies = [];
+
+    function searchMovies() {
+      const query = document.getElementById('search-bar').value;
+      const spinner = document.getElementById('loading-spinner');
+      const resultsContainer = document.getElementById('results-container');
+
+      if (query.trim() === "") {
+        alert("Please enter a movie title.");
+        return;
+      }
+
+      spinner.style.display = 'block';
+      resultsContainer.innerHTML = '';
+
+      fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`)
+        .then(response => response.json())
+        .then(data => {
+          spinner.style.display = 'none';
+
+          if (data.results.length === 0) {
+            resultsContainer.innerHTML = '<p>No movies found matching your search.</p>';
+            return;
+          }
+
+          allMovies = data.results;
+          displayMovies(allMovies);
+        })
+        .catch(error => {
+          spinner.style.display = 'none';
+          console.error('Error fetching movie data:', error);
+          alert('An error occurred while fetching movie data.');
+        });
+    }
+
+    function displayMovies(movies) {
+      const resultsContainer = document.getElementById('results-container');
+      resultsContainer.innerHTML = '';
+
+      movies.forEach(movie => {
+        const movieElement = document.createElement('div');
+        movieElement.classList.add('movie-item');
+        movieElement.innerHTML = `
+          <img src="${imageBaseURL + movie.poster_path}" loading="lazy" alt="${movie.title}">
+          <div class="overlay">
+            <div class="movie-title">${movie.title} (${movie.release_date?.substring(0, 4) || "N/A"})</div>
+            <div class="movie-meta">Rating: ${movie.vote_average}</div>
+          </div>
+        `;
+        movieElement.onclick = () => openModal(movie.id);
+        resultsContainer.appendChild(movieElement);
+      });
+    }
+
+    function openModal(movieId) {
+      const modal = document.getElementById('movieModal');
+      const modalContent = document.getElementById('modal-content-area');
+
+      fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${apiKey}`)
+        .then(response => response.json())
+        .then(movie => {
+          modalContent.innerHTML = `
+            <h2>${movie.title}</h2>
+            <img src="${imageBaseURL + movie.poster_path}" alt="${movie.title}">
+            <p><strong>Overview:</strong> ${movie.overview}</p>
+            <p><strong>Release Date:</strong> ${movie.release_date}</p>
+            <p><strong>Rating:</strong> ${movie.vote_average}</p>
+            <p><strong>Genres:</strong> ${movie.genres.map(genre => genre.name).join(', ')}</p>
+          `;
+          modal.style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Error fetching movie details:', error);
+          alert('An error occurred while fetching movie details.');
+        });
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('movieModal');
+      modal.style.display = 'none';
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+
+    function sortMovies() {
+      const sortBy = document.getElementById('sortSelect').value;
+      const sortedMovies = [...allMovies];
+
+      sortedMovies.sort((a, b) => {
+        if (sortBy === 'rating') {
+          return b.vote_average - a.vote_average;
+        } else if (sortBy === 'release_date') {
+          return new Date(b.release_date) - new Date(a.release_date);
+        }
+        return 0;
+      });
+
+      displayMovies(sortedMovies);
+    }
+  </script>
+</body>
+</html>
