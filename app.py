@@ -18,8 +18,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# TMDB API
+# API KEYS
 TMDB_API_KEY = 'fd63624ffe4ce8868bd42a144141ba75'
+YOUTUBE_API_KEY = 'AIzaSyA_BB6b5s8hbDy9GGgCmSFcWgJtugTT1IM'
 
 # Load datasets
 movies_df = pd.read_csv('movies.csv')
@@ -43,7 +44,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # TMDB helper
-
 def get_movie_details(title):
     url = f'https://api.themoviedb.org/3/search/movie'
     params = {'api_key': TMDB_API_KEY, 'query': title}
@@ -57,6 +57,23 @@ def get_movie_details(title):
             'vote_average': movie.get('vote_average', "N/A")
         }
     return {'poster': '', 'overview': '', 'vote_average': 'N/A'}
+
+# YouTube Trailer helper
+def get_youtube_trailer(title):
+    query = f"{title} official trailer"
+    url = f"https://www.googleapis.com/youtube/v3/search"
+    params = {
+        'part': 'snippet',
+        'q': query,
+        'key': YOUTUBE_API_KEY,
+        'maxResults': 1,
+        'type': 'video'
+    }
+    response = requests.get(url, params=params).json()
+    if response.get('items'):
+        video_id = response['items'][0]['id']['videoId']
+        return f"https://www.youtube.com/watch?v={video_id}"
+    return None
 
 # Recommendation logic
 def recommend_movies_for_user(user_id, top_n=5):
@@ -78,13 +95,15 @@ def recommend_movies_for_user(user_id, top_n=5):
     result = []
     for _, row in movie_recommendations.iterrows():
         tmdb = get_movie_details(row['title'])
+        trailer = get_youtube_trailer(row['title'])
         result.append({
             'movieId': row['movieId'],
             'title': row['title'],
             'rating': round(row['rating'], 2),
             'poster': tmdb['poster'],
             'overview': tmdb['overview'],
-            'vote_average': tmdb['vote_average']
+            'vote_average': tmdb['vote_average'],
+            'trailer': trailer
         })
     return result
 
@@ -125,6 +144,12 @@ def search():
     title = request.args.get('title')
     movie_details = get_movie_details(title)
     return jsonify(movie_details)
+
+@app.route('/trailer')
+def trailer():
+    title = request.args.get('title')
+    video_url = get_youtube_trailer(title)
+    return jsonify({"title": title, "trailer_url": video_url})
 
 if __name__ == '__main__':
     with app.app_context():

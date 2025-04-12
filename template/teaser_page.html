@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teaser Page</title>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(1, 180, 228, 0.2)), url('https://image.tmdb.org/t/p/original/xDMIl84Qo5Tsu62c9DGWhmPI67A.jpg') no-repeat center center/cover;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .back-btn, .search-btn, .like-btn, .dislike-btn {
+      background-color: #01b4e4;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 1.1em;
+      cursor: pointer;
+      border: none;
+      margin: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn { position: absolute; top: 20px; left: 20px; }
+
+    .back-btn:hover, .search-btn:hover, .like-btn:hover, .dislike-btn:hover {
+      transform: scale(1.1);
+      background-color: #019bb3;
+    }
+
+    .search-container {
+      margin-top: 60px;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .search-bar {
+      padding: 12px;
+      width: 60%;
+      font-size: 1.2em;
+      border-radius: 12px;
+      border: 2px solid #01b4e4;
+      outline: none;
+    }
+
+    iframe {
+      width: 100%;
+      max-width: 900px;
+      height: 500px;
+      border-radius: 15px;
+      margin-top: 30px;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-top: 100px;
+      color: #01b4e4;
+      text-shadow: 2px 2px 6px #000;
+    }
+
+    .movie-details {
+      background: rgba(0,0,0,0.6);
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+      width: 80%;
+      max-width: 900px;
+      text-align: left;
+    }
+
+    .movie-details h2 {
+      color: #01b4e4;
+      margin-bottom: 10px;
+    }
+
+    .theater-list {
+      margin-top: 30px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-radius: 12px;
+      width: 80%;
+      max-width: 900px;
+    }
+
+    .theater-list h3 {
+      color: #01b4e4;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="window.history.back()">Back</button>
+
+  <div class="search-container">
+    <input type="text" id="movieSearch" class="search-bar" placeholder="Search for a movie..." />
+    <button class="search-btn" onclick="searchMovie()">Search</button>
+    <button class="search-btn" onclick="getUserLocation()">🎯 Find Theaters</button>
+  </div>
+
+  <h1>🎥 Movie Teaser</h1>
+
+  <iframe id="videoFrame" src="" allowfullscreen></iframe>
+
+  <div id="movieDetails" class="movie-details" style="display:none;"></div>
+
+  <div class="like-dislike-container">
+    <button class="like-btn" onclick="likeMovie()">👍 Like <span id="likeCount">0</span></button>
+    <button class="dislike-btn" onclick="dislikeMovie()">👎 Dislike <span id="dislikeCount">0</span></button>
+  </div>
+
+  <div id="theaterList" class="theater-list" style="display: none;"></div>
+
+  <script>
+    const tmdbKey = "fd63624ffe4ce8868bd42a144141ba75"; // TMDb API Key
+    const youtubeKey = "AIzaSyA_BB6b5s8hbDy9GGgCmSFcWgJtugTT1IM"; // YouTube API Key
+
+    let likeCount = 0;
+    let dislikeCount = 0;
+
+    function likeMovie() {
+      likeCount++;
+      document.getElementById("likeCount").innerText = likeCount;
+    }
+
+    function dislikeMovie() {
+      dislikeCount++;
+      document.getElementById("dislikeCount").innerText = dislikeCount;
+    }
+
+    function searchMovie() {
+      const movieTitle = document.getElementById('movieSearch').value.trim();
+      if (!movieTitle) return alert("Please enter a movie title.");
+
+      // YouTube API to get trailer
+      fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(movieTitle)}+trailer&type=video&key=${youtubeKey}`)
+        .then(res => res.json())
+        .then(data => {
+          const videoId = data.items[0]?.id?.videoId;
+          if (videoId) {
+            document.getElementById("videoFrame").src = `https://www.youtube.com/embed/${videoId}`;
+          }
+        });
+
+      // TMDB API to get movie details
+      fetch(`https://api.themoviedb.org/3/search/movie?api_key=${tmdbKey}&query=${encodeURIComponent(movieTitle)}`)
+        .then(res => res.json())
+        .then(data => {
+          const movie = data.results[0];
+          if (!movie) return;
+
+          fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${tmdbKey}&append_to_response=credits`)
+            .then(res => res.json())
+            .then(details => {
+              const director = details.credits.crew.find(c => c.job === "Director");
+              document.getElementById("movieDetails").style.display = "block";
+              document.getElementById("movieDetails").innerHTML = `
+                <h2>${details.title}</h2>
+                <p><strong>Release Date:</strong> ${details.release_date}</p>
+                <p><strong>Rating:</strong> ${details.vote_average} ⭐</p>
+                <p><strong>Director:</strong> ${director?.name || "Unknown"}</p>
+                <p><strong>Overview:</strong> ${details.overview}</p>
+              `;
+            });
+        });
+    }
+
+    function getUserLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(fetchNearbyTheaters, err => alert("Location error: " + err.message));
+      } else {
+        alert("Geolocation not supported.");
+      }
+    }
+
+    function fetchNearbyTheaters(pos) {
+      const { latitude, longitude } = pos.coords;
+      const query = `
+        [out:json];
+        node["amenity"="cinema"](around:5000,${latitude},${longitude});
+        out;
+      `;
+
+      fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `data=${encodeURIComponent(query)}`
+      })
+        .then(res => res.json())
+        .then(data => {
+          const theaters = data.elements;
+          const list = document.getElementById("theaterList");
+          list.style.display = "block";
+          list.innerHTML = "<h3>🎭 Theaters Near You</h3>";
+
+          if (theaters.length === 0) {
+            list.innerHTML += "<p>No theaters found nearby.</p>";
+            return;
+          }
+
+          theaters.forEach(t => {
+            list.innerHTML += `<p>📍 ${t.tags.name || "Unnamed Theater"} (Lat: ${t.lat.toFixed(3)}, Lon: ${t.lon.toFixed(3)})</p>`;
+          });
+        })
+        .catch(err => {
+          console.error("Overpass API error:", err);
+          alert("Failed to fetch nearby theaters.");
+        });
+    }
+  </script>
+
+</body>
+</html>

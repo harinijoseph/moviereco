@@ -11,7 +11,6 @@
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Roboto', sans-serif;
       background-color: #1a1a1a;
@@ -22,7 +21,6 @@
       background-position: center;
       backdrop-filter: brightness(0.6);
     }
-
     h1 {
       font-size: 3.5em;
       margin-top: 40px;
@@ -30,7 +28,26 @@
       color: #01b4e4;
       text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.7);
     }
-
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .filters input {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      font-size: 1em;
+      width: 200px;
+    }
+    .filters input[type="number"] {
+      width: 120px;
+    }
+    .filters input[type="text"] {
+      width: 250px;
+    }
     .button-container {
       display: flex;
       justify-content: center;
@@ -38,7 +55,6 @@
       margin-top: 30px;
       flex-wrap: wrap;
     }
-
     .genre-button {
       padding: 15px 25px;
       font-size: 1.2em;
@@ -52,23 +68,15 @@
       gap: 10px;
       transition: all 0.3s ease;
     }
-
     .genre-button:hover {
       transform: scale(1.1);
       background-color: #017f9b;
     }
-
-    .genre-button img {
-      width: 40px;
-      height: 40px;
-    }
-
     .loading-spinner {
       margin-top: 40px;
       font-size: 1.5em;
       color: #01b4e4;
     }
-
     .results-container {
       display: flex;
       flex-wrap: wrap;
@@ -76,7 +84,6 @@
       justify-content: center;
       margin-top: 40px;
     }
-
     .movie-item {
       width: 250px;
       background: rgba(0, 0, 0, 0.8);
@@ -85,48 +92,41 @@
       cursor: pointer;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       position: relative;
-      border: 5px solid #ffffff; /* White border to make the poster pop */
-      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.6); /* Shadow to lift the poster */
+      border: 5px solid #ffffff;
+      box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.6);
     }
-
     .movie-item:hover {
       transform: translateY(-10px);
-      box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.8); /* Stronger shadow on hover */
+      box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.8);
     }
-
     .movie-item img {
       width: 100%;
       height: auto;
       display: block;
       border-bottom: 2px solid #01b4e4;
     }
-
     .overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.6)); /* Darker overlay for better visibility */
+      background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.6));
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       padding: 15px;
       color: #fff;
     }
-
     .movie-title {
       font-size: 1.2em;
       font-weight: bold;
       margin-bottom: 5px;
     }
-
     .movie-meta {
       font-size: 0.95em;
       color: #ccc;
     }
-
-    /* Modal styles */
     .modal {
       display: none;
       position: fixed;
@@ -138,7 +138,6 @@
       overflow: auto;
       background: rgba(0, 0, 0, 0.8);
     }
-
     .modal-content {
       background-color: #222;
       margin: 10% auto;
@@ -150,250 +149,215 @@
       text-align: left;
       position: relative;
     }
-
     .close {
       color: #aaa;
       font-size: 28px;
       font-weight: bold;
       cursor: pointer;
+      position: absolute;
+      top: 10px;
+      right: 20px;
     }
-
     .close:hover {
       color: #fff;
     }
-
-    /* Back button in top-right corner */
-    .back-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: #01b4e4;
-      color: white;
-      padding: 10px 20px;
+    #pagination {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .page-btn {
+      padding: 10px 15px;
+      background: #01b4e4;
       border: none;
+      color: #fff;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 1.2em;
-      transition: background-color 0.3s;
+      font-size: 1em;
     }
-
-    .back-button:hover {
-      background-color: #017f9b;
-    }
-
-    /* Home Button positioned in top-right corner */
-    .home-button {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      background-color: #01b4e4;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1.2em;
-      transition: background-color 0.3s;
-    }
-
-    .home-button:hover {
-      background-color: #017f9b;
-    }
-
-    @media (max-width: 768px) {
-      h1 { font-size: 2.5em; }
-      .movie-item { width: 200px; }
-      .modal-content { width: 90%; }
+    .page-btn:hover {
+      background: #0284a8;
     }
   </style>
 </head>
 <body>
-  <h1>🎬 Movie Suggestions</h1>
-
-  <div class="button-container">
-    <!-- Genre Buttons with Cartoon Icons -->
-    <button class="genre-button" onclick="getMoviesByGenre(28)">
-      <img src="https://img.icons8.com/ios-filled/50/ffffff/action.png" alt="Action Icon"> Action
-    </button>
-    <button class="genre-button" onclick="getMoviesByGenre(35)">
-      <img src="https://img.icons8.com/ios-filled/50/ffffff/comedy.png" alt="Comedy Icon"> Comedy
-    </button>
-    <button class="genre-button" onclick="getMoviesByGenre(18)">
-      <img src="https://img.icons8.com/ios-filled/50/ffffff/drama.png" alt="Drama Icon"> Drama
-    </button>
-    <button class="genre-button" onclick="getMoviesByGenre(27)">
-      <img src="https://img.icons8.com/ios-filled/50/ffffff/horror.png" alt="Horror Icon"> Horror
-    </button>
-    <button class="genre-button" onclick="getMoviesByGenre(12)">
-      <img src="https://img.icons8.com/ios-filled/50/ffffff/adventure.png" alt="Adventure Icon"> Adventure
-    </button>
-    <button class="genre-button" onclick="getMoviesByGenre(10749)">
-      <img src="https://img.icons8.com/ios-filled/50/ffffff/romance.png" alt="Romance Icon"> Romance
-    </button>
-    <button class="genre-button" onclick="getMoviesByGenre(878)">
-      <img src="https://img.icons8.com/ios-filled/50/ffffff/sci-fi.png" alt="Sci-Fi Icon"> Sci-Fi
-    </button>
-    <button class="genre-button" onclick="getMoviesByGenre(53)">
-      <img src="https://img.icons8.com/ios-filled/50/ffffff/thriller.png" alt="Thriller Icon"> Thriller
-    </button>
+  <h1>Movie Suggestions</h1>
+  
+  <div class="filters">
+    <select id="yearInput">
+      <option value="">Select Year</option>
+      <option value="2023">2023</option>
+      <option value="2022">2022</option>
+      <option value="2021">2021</option>
+      <option value="2020">2020</option>
+      <option value="2019">2019</option>
+      <option value="2018">2018</option>
+      <option value="2015">2015</option>
+      <option value="2012">2012</option>
+    </select>
+    
+    <select id="ratingInput">
+      <option value="">Min Rating</option>
+      <option value="9">9+</option>
+      <option value="8">8+</option>
+      <option value="7">7+</option>
+      <option value="6">6+</option>
+      <option value="5">5+</option>
+      <option value="4">4+</option>
+      <option value="3">3+</option>
+      <option value="2">2+</option>
+      <option value="1">1+</option>
+    </select>
+    
+    <input type="text" id="actorInput" placeholder="Search by Actor/Keyword">
   </div>
 
-  <div class="loading-spinner" id="loading-spinner" style="display: none;">Loading suggestions...</div>
+  <div class="button-container" id="genreButtons"></div>
+  <div class="loading-spinner" id="loading" style="display: none;">Loading movies...</div>
+  <div class="results-container" id="results"></div>
+  <div id="pagination"></div>
 
-  <div class="button-container">
-    <button class="genre-button" onclick="getTrendingMovies()">Trending Movies</button>
-    <button class="genre-button" onclick="getTopRatedMovies()">Top Rated Movies</button>
-  </div>
-
-  <div class="results-container" id="results-container"></div>
-
-  <!-- Modal for Movie Details -->
+  <!-- Modal -->
   <div id="movieModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
-      <div id="modal-content-area"></div>
-      <!-- Back button in top-right corner of modal -->
-      <button class="back-button" onclick="closeModal()">Back</button>
+      <h2 id="modalTitle"></h2>
+      <p id="modalOverview"></p>
     </div>
   </div>
 
-  <!-- Home Button -->
-  <button class="home-button" onclick="window.location.href='index.html'">Back to Home</button>
-
   <script>
     const apiKey = 'fd63624ffe4ce8868bd42a144141ba75';
-    const imageBaseURL = 'https://image.tmdb.org/t/p/w500';
+    const genreList = [
+      { id: 28, name: "Action", icon: "🎬" },
+      { id: 35, name: "Comedy", icon: "😂" },
+      { id: 18, name: "Drama", icon: "🎭" },
+      { id: 27, name: "Horror", icon: "👻" },
+      { id: 10749, name: "Romance", icon: "💖" },
+      { id: 16, name: "Animation", icon: "🎨" },
+      { id: 12, name: "Adventure", icon: "🧭" },
+      { id: 99, name: "Documentary", icon: "📚" },
+      { id: 878, name: "Sci-Fi", icon: "🚀" },
+      { id: 9648, name: "Mystery", icon: "🕵️" }
+    ];
 
-    function getMoviesByGenre(genreId) {
-      const spinner = document.getElementById('loading-spinner');
-      const resultsContainer = document.getElementById('results-container');
+    const genreButtons = document.getElementById("genreButtons");
+    const resultsContainer = document.getElementById("results");
+    const loading = document.getElementById("loading");
+    const pagination = document.getElementById("pagination");
+    let currentGenreId = null;
 
-      spinner.style.display = 'block';
+    genreList.forEach(genre => {
+      const btn = document.createElement('button');
+      btn.classList.add('genre-button');
+      btn.innerHTML = `${genre.icon} ${genre.name}`;
+      btn.onclick = () => {
+        currentGenreId = genre.id;
+        fetchMoviesByGenre(currentGenreId, 1);
+      };
+      genreButtons.appendChild(btn);
+    });
+
+    document.getElementById('actorInput').addEventListener('input', function () {
+      const query = this.value;
+      if (query.length >= 3) {
+        searchMovies(query);
+      }
+    });
+
+    function searchMovies(query) {
       resultsContainer.innerHTML = '';
-
-      fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}`)
-        .then(response => response.json())
+      loading.style.display = 'block';
+      pagination.innerHTML = '';
+      fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}`)
+        .then(res => res.json())
         .then(data => {
-          spinner.style.display = 'none';
-
-          if (data.results.length === 0) {
-            resultsContainer.innerHTML = '<p>No movies found for this genre.</p>';
-            return;
-          }
-
-          data.results.forEach(movie => {
-            const movieElement = createMovieElement(movie);
-            resultsContainer.appendChild(movieElement);
-          });
+          loading.style.display = 'none';
+          displayMovies(data.results);
         })
-        .catch(error => {
-          spinner.style.display = 'none';
-          console.error('Error fetching movies by genre:', error);
-          alert('An error occurred while fetching movies.');
+        .catch(err => {
+          loading.style.display = 'none';
+          console.error(err);
+          resultsContainer.innerHTML = `<p style="color:red;">Failed to load movies. Try again later.</p>`;
         });
     }
 
-    function getTrendingMovies() {
-      const spinner = document.getElementById('loading-spinner');
-      const resultsContainer = document.getElementById('results-container');
-
-      spinner.style.display = 'block';
+    function fetchMoviesByGenre(genreId, page = 1) {
+      const year = document.getElementById('yearInput').value;
+      const rating = document.getElementById('ratingInput').value;
       resultsContainer.innerHTML = '';
+      loading.style.display = 'block';
+      pagination.innerHTML = '';
+      let url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genreId}&page=${page}&sort_by=popularity.desc`;
+      if (year) url += `&primary_release_year=${year}`;
+      if (rating) url += `&vote_average.gte=${rating}`;
 
-      fetch(`https://api.themoviedb.org/3/trending/movie/day?api_key=${apiKey}`)
-        .then(response => response.json())
+      fetch(url)
+        .then(res => res.json())
         .then(data => {
-          spinner.style.display = 'none';
-
-          if (data.results.length === 0) {
-            resultsContainer.innerHTML = '<p>No trending movies found.</p>';
-            return;
-          }
-
-          data.results.forEach(movie => {
-            const movieElement = createMovieElement(movie);
-            resultsContainer.appendChild(movieElement);
-          });
+          loading.style.display = 'none';
+          displayMovies(data.results);
+          createPagination(data.total_pages, genreId);
         })
-        .catch(error => {
-          spinner.style.display = 'none';
-          console.error('Error fetching trending movies:', error);
-          alert('An error occurred while fetching trending movies.');
+        .catch(err => {
+          loading.style.display = 'none';
+          console.error(err);
+          resultsContainer.innerHTML = `<p style="color:red;">Failed to load movies. Try again later.</p>`;
         });
     }
 
-    function getTopRatedMovies() {
-      const spinner = document.getElementById('loading-spinner');
-      const resultsContainer = document.getElementById('results-container');
-
-      spinner.style.display = 'block';
+    function displayMovies(movies) {
       resultsContainer.innerHTML = '';
-
-      fetch(`https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}`)
-        .then(response => response.json())
-        .then(data => {
-          spinner.style.display = 'none';
-
-          if (data.results.length === 0) {
-            resultsContainer.innerHTML = '<p>No top rated movies found.</p>';
-            return;
-          }
-
-          data.results.forEach(movie => {
-            const movieElement = createMovieElement(movie);
-            resultsContainer.appendChild(movieElement);
-          });
-        })
-        .catch(error => {
-          spinner.style.display = 'none';
-          console.error('Error fetching top rated movies:', error);
-          alert('An error occurred while fetching top rated movies.');
-        });
+      if (movies.length === 0) {
+        resultsContainer.innerHTML = '<p>No movies found.</p>';
+        return;
+      }
+      movies.forEach(movie => {
+        const movieItem = document.createElement('div');
+        movieItem.classList.add('movie-item');
+        movieItem.onclick = () => openModal(movie);
+        const imgUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image';
+        movieItem.innerHTML = `
+          <img src="${imgUrl}" alt="${movie.title}">
+          <div class="overlay">
+            <div class="movie-title">${movie.title}</div>
+            <div class="movie-meta">${movie.release_date || 'N/A'}</div>
+          </div>
+        `;
+        resultsContainer.appendChild(movieItem);
+      });
     }
 
-    function createMovieElement(movie) {
-      const movieElement = document.createElement('div');
-      movieElement.classList.add('movie-item');
-      movieElement.onclick = () => openModal(movie);
-
-      const movieImage = document.createElement('img');
-      movieImage.src = imageBaseURL + movie.poster_path;
-      movieElement.appendChild(movieImage);
-
-      const overlay = document.createElement('div');
-      overlay.classList.add('overlay');
-      const title = document.createElement('div');
-      title.classList.add('movie-title');
-      title.textContent = movie.title;
-      overlay.appendChild(title);
-
-      const meta = document.createElement('div');
-      meta.classList.add('movie-meta');
-      meta.textContent = `Rating: ${movie.vote_average} | Release: ${movie.release_date}`;
-      overlay.appendChild(meta);
-
-      movieElement.appendChild(overlay);
-
-      return movieElement;
+    function createPagination(totalPages, genreId) {
+      pagination.innerHTML = '';
+      const maxPages = Math.min(totalPages, 10);
+      for (let i = 1; i <= maxPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.classList.add('page-btn');
+        pageBtn.innerText = i;
+        pageBtn.onclick = () => fetchMoviesByGenre(genreId, i);
+        pagination.appendChild(pageBtn);
+      }
     }
 
     function openModal(movie) {
-      const modal = document.getElementById('movieModal');
-      const modalContentArea = document.getElementById('modal-content-area');
-      
-      modalContentArea.innerHTML = `
-        <h2>${movie.title}</h2>
-        <p>${movie.overview}</p>
-        <p><strong>Rating:</strong> ${movie.vote_average}</p>
-        <p><strong>Release Date:</strong> ${movie.release_date}</p>
-      `;
-      modal.style.display = 'block';
+      document.getElementById('modalTitle').innerText = movie.title;
+      document.getElementById('modalOverview').innerText = movie.overview || 'No overview available.';
+      document.getElementById('movieModal').style.display = 'block';
     }
 
     function closeModal() {
+      document.getElementById('movieModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
       const modal = document.getElementById('movieModal');
-      modal.style.display = 'none';
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
     }
   </script>
 </body>
-</html>  
+</html>
