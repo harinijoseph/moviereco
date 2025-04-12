@@ -45,67 +45,76 @@ def load_user(user_id):
 
 # TMDB helper
 def get_movie_details(title):
-    url = f'https://api.themoviedb.org/3/search/movie'
-    params = {'api_key': TMDB_API_KEY, 'query': title}
-    response = requests.get(url, params=params).json()
+    try:
+        url = f'https://api.themoviedb.org/3/search/movie'
+        params = {'api_key': TMDB_API_KEY, 'query': title}
+        response = requests.get(url, params=params).json()
 
-    if response['results']:
-        movie = response['results'][0]
-        return {
-            'poster': f"https://image.tmdb.org/t/p/w500{movie.get('poster_path')}" if movie.get('poster_path') else "",
-            'overview': movie.get('overview', ""),
-            'vote_average': movie.get('vote_average', "N/A")
-        }
-    return {'poster': '', 'overview': '', 'vote_average': 'N/A'}
+        if response['results']:
+            movie = response['results'][0]
+            return {
+                'poster': f"https://image.tmdb.org/t/p/w500{movie.get('poster_path')}" if movie.get('poster_path') else "",
+                'overview': movie.get('overview', ""),
+                'vote_average': movie.get('vote_average', "N/A")
+            }
+        return {'poster': '', 'overview': '', 'vote_average': 'N/A'}
+    except Exception as e:
+        return {'poster': '', 'overview': '', 'vote_average': 'N/A'}
 
 # YouTube Trailer helper
 def get_youtube_trailer(title):
-    query = f"{title} official trailer"
-    url = f"https://www.googleapis.com/youtube/v3/search"
-    params = {
-        'part': 'snippet',
-        'q': query,
-        'key': YOUTUBE_API_KEY,
-        'maxResults': 1,
-        'type': 'video'
-    }
-    response = requests.get(url, params=params).json()
-    if response.get('items'):
-        video_id = response['items'][0]['id']['videoId']
-        return f"https://www.youtube.com/watch?v={video_id}"
-    return None
+    try:
+        query = f"{title} official trailer"
+        url = f"https://www.googleapis.com/youtube/v3/search"
+        params = {
+            'part': 'snippet',
+            'q': query,
+            'key': YOUTUBE_API_KEY,
+            'maxResults': 1,
+            'type': 'video'
+        }
+        response = requests.get(url, params=params).json()
+        if response.get('items'):
+            video_id = response['items'][0]['id']['videoId']
+            return f"https://www.youtube.com/watch?v={video_id}"
+        return None
+    except Exception as e:
+        return None
 
 # Recommendation logic
 def recommend_movies_for_user(user_id, top_n=5):
-    user_movie_matrix = ratings_df.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
-    cosine_sim = cosine_similarity(user_movie_matrix)
-    user_index = user_id - 1
+    try:
+        user_movie_matrix = ratings_df.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
+        cosine_sim = cosine_similarity(user_movie_matrix)
+        user_index = user_id - 1
 
-    similar_users = sorted(
-        list(enumerate(cosine_sim[user_index])),
-        key=lambda x: x[1], reverse=True
-    )[1:top_n+1]
+        similar_users = sorted(
+            list(enumerate(cosine_sim[user_index])),
+            key=lambda x: x[1], reverse=True
+        )[1:top_n+1]
 
-    similar_user_ids = [user[0] + 1 for user in similar_users]
-    recommended_movies = ratings_df[ratings_df['userId'].isin(similar_user_ids)]
-    movie_recommendations = recommended_movies.groupby('movieId')['rating'].mean().reset_index()
-    movie_recommendations = movie_recommendations.sort_values(by='rating', ascending=False).head(top_n)
-    movie_recommendations = pd.merge(movie_recommendations, movies_df, on='movieId')
+        similar_user_ids = [user[0] + 1 for user in similar_users]
+        recommended_movies = ratings_df[ratings_df['userId'].isin(similar_user_ids)]
+        movie_recommendations = recommended_movies.groupby('movieId')['rating'].mean().reset_index()
+        movie_recommendations = movie_recommendations.sort_values(by='rating', ascending=False).head(top_n)
+        movie_recommendations = pd.merge(movie_recommendations, movies_df, on='movieId')
 
-    result = []
-    for _, row in movie_recommendations.iterrows():
-        tmdb = get_movie_details(row['title'])
-        trailer = get_youtube_trailer(row['title'])
-        result.append({
-            'movieId': row['movieId'],
-            'title': row['title'],
-            'rating': round(row['rating'], 2),
-            'poster': tmdb['poster'],
-            'overview': tmdb['overview'],
-            'vote_average': tmdb['vote_average'],
-            'trailer': trailer
-        })
-    return result
+        result = []
+        for _, row in movie_recommendations.iterrows():
+            tmdb = get_movie_details(row['title'])
+            trailer = get_youtube_trailer(row['title'])
+            result.append({
+                'movieId': row['movieId'],
+                'title': row['title'],
+                'rating': round(row['rating'], 2),
+                'poster': tmdb['poster'],
+                'overview': tmdb['overview'],
+                'vote_average': tmdb['vote_average'],
+                'trailer': trailer
+            })
+        return result
+    except Exception as e:
+        return []
 
 # Routes
 @app.route('/')
